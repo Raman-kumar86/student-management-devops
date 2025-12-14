@@ -8,9 +8,14 @@ pipeline {
 
     stages {
 
-        stage('Checkout Code') {
+        stage('Verify Workspace') {
             steps {
-                checkout scm
+                sh '''
+                  echo "Workspace:"
+                  pwd
+                  ls
+                  ls student-service
+                '''
             }
         }
 
@@ -27,53 +32,40 @@ pipeline {
             }
         }
 
-
         stage('Build Docker Image') {
             steps {
-                dir('student-service') {
-                    sh '''
-                      docker build -t ${IMAGE_NAME}:${IMAGE_TAG} .
-                    '''
-                }
+                sh '''
+                  docker build -t $IMAGE_NAME:$IMAGE_TAG student-service
+                '''
             }
         }
 
         stage('Push Image to Docker Hub') {
             steps {
-                withCredentials([usernamePassword(
-                    credentialsId: 'dockerhub-creds',
-                    usernameVariable: 'DOCKER_USER',
-                    passwordVariable: 'DOCKER_PASS'
-                )]) {
-                    sh '''
-                      echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
-                      docker push ${IMAGE_NAME}:${IMAGE_TAG}
-                      docker logout
-                    '''
-                }
+                sh '''
+                  docker push $IMAGE_NAME:$IMAGE_TAG
+                '''
             }
         }
 
         stage('Deploy to Kubernetes') {
             steps {
-                dir('k8s') {
-                    sh '''
-                      kubectl apply -f mysql-deployment.yaml
-                      kubectl apply -f mysql-service.yaml
-                      kubectl apply -f student-service-deployment.yaml
-                      kubectl apply -f student-service-service.yaml
-                    '''
-                }
+                sh '''
+                  kubectl apply -f k8s/mysql-deployment.yaml
+                  kubectl apply -f k8s/mysql-service.yaml
+                  kubectl apply -f k8s/student-service-deployment.yaml
+                  kubectl apply -f k8s/student-service-service.yaml
+                '''
             }
         }
     }
 
     post {
         success {
-            echo "✅ CI/CD Pipeline Completed Successfully"
+            echo '✅ CI/CD Pipeline Completed Successfully'
         }
         failure {
-            echo "❌ CI/CD Pipeline Failed"
+            echo '❌ CI/CD Pipeline Failed'
         }
     }
 }
