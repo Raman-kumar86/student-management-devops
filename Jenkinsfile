@@ -16,24 +16,23 @@ pipeline {
 
         stage('Build with Maven (Docker)') {
             steps {
-                dir('student-service') {
-                    sh '''
-                    docker run --rm \
-                      -v "$PWD":/app \
-                      -v "$HOME/.m2":/root/.m2 \
-                      -w /app \
-                      maven:3.9.9-eclipse-temurin-17 \
-                      mvn clean package -DskipTests
-                    '''
-                }
+                sh '''
+                docker run --rm \
+                  -v /var/jenkins_home/workspace/student-management-pipeline:/workspace \
+                  -v /var/jenkins_home/.m2:/root/.m2 \
+                  -w /workspace/student-service \
+                  maven:3.9.9-eclipse-temurin-17 \
+                  mvn clean package -DskipTests
+                '''
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                dir('student-service') {
-                    sh 'docker build -t $IMAGE_NAME:$IMAGE_TAG .'
-                }
+                sh '''
+                cd student-service
+                docker build -t $IMAGE_NAME:$IMAGE_TAG .
+                '''
             }
         }
 
@@ -55,10 +54,10 @@ pipeline {
 
     post {
         success {
-            echo '✅ CI Pipeline Successful'
+            echo '✅ CI Pipeline SUCCESSFUL'
         }
         failure {
-            echo '❌ CI Pipeline Failed'
+            echo '❌ CI Pipeline FAILED'
         }
     }
 }
