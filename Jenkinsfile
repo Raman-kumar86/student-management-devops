@@ -2,19 +2,19 @@ pipeline {
     agent any
 
     environment {
-        IMAGE_NAME = "student-service"
+        IMAGE_NAME = "ramanjaisw86/student-service"
         IMAGE_TAG  = "1.0"
     }
 
     stages {
 
-        stage('Build Maven Project') {
-            agent {
-                docker {
-                    image 'maven:3.9.9-eclipse-temurin-17'
-                    args '-v /root/.m2:/root/.m2'
-                }
+        stage('Checkout Code') {
+            steps {
+                checkout scm
             }
+        }
+
+        stage('Build Maven Project') {
             steps {
                 dir('student-service') {
                     sh 'mvn clean package -DskipTests'
@@ -25,16 +25,16 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 dir('student-service') {
-                    sh 'docker build -t $IMAGE_NAME:$IMAGE_TAG .'
+                    sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
                 }
             }
         }
-        environment {
-            IMAGE_NAME = "ramanjaisw86/student-service"
-            IMAGE_TAG  = "1.0"
-        }
 
-        
+        stage('Push Image to Docker Hub') {
+            steps {
+                sh "docker push ${IMAGE_NAME}:${IMAGE_TAG}"
+            }
+        }
 
         stage('Deploy to Kubernetes') {
             steps {
@@ -50,10 +50,10 @@ pipeline {
 
     post {
         success {
-            echo '✅ Deployment Successful!'
+            echo '✅ CI/CD Pipeline Completed Successfully!'
         }
         failure {
-            echo '❌ Deployment Failed'
+            echo '❌ Pipeline Failed. Check logs.'
         }
     }
 }
