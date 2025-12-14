@@ -14,25 +14,35 @@ pipeline {
             }
         }
 
-        stage('Build with Maven (Docker)') {
+        stage('Verify Project') {
             steps {
                 sh '''
-                docker run --rm \
-                  -v /var/jenkins_home/workspace/student-management-pipeline:/workspace \
-                  -v /var/jenkins_home/.m2:/root/.m2 \
-                  -w /workspace/student-service \
-                  maven:3.9.9-eclipse-temurin-17 \
-                  mvn clean package -DskipTests
+                pwd
+                ls
+                ls student-service
+                test -f student-service/pom.xml
                 '''
+            }
+        }
+
+        stage('Build Maven Project') {
+            steps {
+                dir('student-service') {
+                    sh '''
+                    chmod +x mvnw
+                    ./mvnw clean package -DskipTests
+                    '''
+                }
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                sh '''
-                cd student-service
-                docker build -t $IMAGE_NAME:$IMAGE_TAG .
-                '''
+                dir('student-service') {
+                    sh '''
+                    docker build -t $IMAGE_NAME:$IMAGE_TAG .
+                    '''
+                }
             }
         }
 
