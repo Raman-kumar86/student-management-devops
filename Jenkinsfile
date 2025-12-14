@@ -1,5 +1,5 @@
 pipeline {
-    agent none
+    agent any
 
     environment {
         IMAGE_NAME = "ramanjaisw86/student-service"
@@ -8,53 +8,57 @@ pipeline {
 
     stages {
 
-        stage('Build Maven Project') {
-            agent {
-                docker {
-                    image 'maven:3.9.9-eclipse-temurin-17'
-                    args '-v /root/.m2:/root/.m2'
-                }
+        stage('Checkout') {
+            steps {
+                checkout scm
             }
+        }
+
+        stage('Build with Maven (Docker)') {
             steps {
                 dir('student-service') {
-                    sh 'mvn clean package -DskipTests'
+                    sh '''
+                    docker run --rm \
+                      -v "$PWD":/app \
+                      -v "$HOME/.m2":/root/.m2 \
+                      -w /app \
+                      maven:3.9.9-eclipse-temurin-17 \
+                      mvn clean package -DskipTests
+                    '''
                 }
             }
         }
 
         stage('Build Docker Image') {
-            agent any
             steps {
-                sh 'docker build -t $IMAGE_NAME:$IMAGE_TAG student-service'
+                dir('student-service') {
+                    sh 'docker build -t $IMAGE_NAME:$IMAGE_TAG .'
+                }
             }
         }
 
-        stage('Push Image to Docker Hub') {
-            agent any
+        stage('Push to Docker Hub') {
             steps {
-                sh 'docker push $IMAGE_NAME:$IMAGE_TAG'
-            }
-        }
-
-        stage('Deploy to Kubernetes') {
-            agent any
-            steps {
-                sh '''
-                  kubectl apply -f k8s/mysql-deployment.yaml
-                  kubectl apply -f k8s/mysql-service.yaml
-                  kubectl apply -f k8s/student-service-deployment.yaml
-                  kubectl apply -f k8s/student-service-service.yaml
-                '''
+                withCredentials([usernamePassword(
+                    credentialsId: 'dockerhub-creds',
+                    usernameVariable: 'DOCKER_USER',
+                    passwordVariable: 'DOCKER_PASS'
+                )]) {
+                    sh '''
+                    echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+                    docker push $IMAGE_NAME:$IMAGE_TAG
+                    '''
+                }
             }
         }
     }
 
     post {
         success {
-            echo '✅ CI/CD Pipeline Completed Successfully'
+            echo '✅ CI Pipeline Successful'
         }
         failure {
-            echo '❌ CI/CD Pipeline Failed'
+            echo '❌ CI Pipeline Failed'
         }
     }
 }
