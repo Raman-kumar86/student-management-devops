@@ -16,18 +16,17 @@ pipeline {
 
         stage('Build Maven Project') {
             steps {
-                dir('student-service') {
-                    sh '''
-                      docker run --rm \
-                        -v "$PWD":/app \
-                        -v "$HOME/.m2":/root/.m2 \
-                        -w /app \
-                        maven:3.9.9-eclipse-temurin-17 \
-                        mvn clean package -DskipTests
-                    '''
-                }
+                sh '''
+                  docker run --rm \
+                    -v "$WORKSPACE/student-service":/app \
+                    -v "$HOME/.m2":/root/.m2 \
+                    -w /app \
+                    maven:3.9.9-eclipse-temurin-17 \
+                    mvn clean package -DskipTests
+                '''
             }
         }
+
 
         stage('Build Docker Image') {
             steps {
