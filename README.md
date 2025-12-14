@@ -23,3 +23,4 @@ POST /students
 - Start Jenkins
 - Start Minikube
 - Push code → pipeline runs automatically
+Testing Jenkins auto build
