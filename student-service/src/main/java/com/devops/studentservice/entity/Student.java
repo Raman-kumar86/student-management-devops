@@ -22,7 +22,7 @@ public class Student {
         this.course = course;
     }
 
-    // getters and setters
+    // Getters & Setters
     public Long getId() {
         return id;
     }
@@ -33,10 +33,6 @@ public class Student {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
     }
 
     public String getEmail() {

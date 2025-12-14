@@ -15,11 +15,11 @@ public class StudentService {
         this.repository = repository;
     }
 
-    public Student save(Student student) {
-        return repository.save(student);
+    public List<Student> getAllStudents() {
+        return repository.findAll();
     }
 
-    public List<Student> getAll() {
-        return repository.findAll();
+    public Student saveStudent(Student student) {
+        return repository.save(student);
     }
 }
