@@ -3,12 +3,18 @@ pipeline {
 
     environment {
         IMAGE_NAME = "student-service"
-        IMAGE_TAG  = "${BUILD_NUMBER}"
+        IMAGE_TAG  = "1.0"
     }
 
     stages {
 
         stage('Build Maven Project') {
+            agent {
+                docker {
+                    image 'maven:3.9.9-eclipse-temurin-17'
+                    args '-v /root/.m2:/root/.m2'
+                }
+            }
             steps {
                 dir('student-service') {
                     sh 'mvn clean package -DskipTests'
@@ -19,14 +25,14 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 dir('student-service') {
-                    sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
+                    sh 'docker build -t $IMAGE_NAME:$IMAGE_TAG .'
                 }
             }
         }
 
         stage('Load Image to Minikube') {
             steps {
-                sh "minikube image load ${IMAGE_NAME}:${IMAGE_TAG}"
+                sh 'minikube image load $IMAGE_NAME:$IMAGE_TAG'
             }
         }
 
@@ -44,10 +50,10 @@ pipeline {
 
     post {
         success {
-            echo "✅ Deployment Successful - Build #${BUILD_NUMBER}"
+            echo '✅ Deployment Successful!'
         }
         failure {
-            echo "❌ Deployment Failed"
+            echo '❌ Deployment Failed'
         }
     }
 }
