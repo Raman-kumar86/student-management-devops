@@ -29,12 +29,12 @@ pipeline {
                 }
             }
         }
-
-        stage('Load Image to Minikube') {
-            steps {
-                sh 'minikube image load $IMAGE_NAME:$IMAGE_TAG'
-            }
+        environment {
+            IMAGE_NAME = "ramanjaisw86/student-service"
+            IMAGE_TAG  = "1.0"
         }
+
+        
 
         stage('Deploy to Kubernetes') {
             steps {
