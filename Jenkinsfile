@@ -1,5 +1,5 @@
 pipeline {
-    agent any
+    agent none
 
     environment {
         IMAGE_NAME = "ramanjaisw86/student-service"
@@ -8,47 +8,36 @@ pipeline {
 
     stages {
 
-        stage('Verify Workspace') {
-            steps {
-                sh '''
-                  echo "Workspace:"
-                  pwd
-                  ls
-                  ls student-service
-                '''
-            }
-        }
-
         stage('Build Maven Project') {
+            agent {
+                docker {
+                    image 'maven:3.9.9-eclipse-temurin-17'
+                    args '-v /root/.m2:/root/.m2'
+                }
+            }
             steps {
-                sh '''
-                  docker run --rm \
-                    -v "$WORKSPACE/student-service":/app \
-                    -v "$HOME/.m2":/root/.m2 \
-                    -w /app \
-                    maven:3.9.9-eclipse-temurin-17 \
-                    mvn clean package -DskipTests
-                '''
+                dir('student-service') {
+                    sh 'mvn clean package -DskipTests'
+                }
             }
         }
 
         stage('Build Docker Image') {
+            agent any
             steps {
-                sh '''
-                  docker build -t $IMAGE_NAME:$IMAGE_TAG student-service
-                '''
+                sh 'docker build -t $IMAGE_NAME:$IMAGE_TAG student-service'
             }
         }
 
         stage('Push Image to Docker Hub') {
+            agent any
             steps {
-                sh '''
-                  docker push $IMAGE_NAME:$IMAGE_TAG
-                '''
+                sh 'docker push $IMAGE_NAME:$IMAGE_TAG'
             }
         }
 
         stage('Deploy to Kubernetes') {
+            agent any
             steps {
                 sh '''
                   kubectl apply -f k8s/mysql-deployment.yaml
