@@ -1,9 +1,11 @@
 package com.devops.studentservice.entity;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 
 @Entity
-@Table(name = "students")
 public class Student {
 
     @Id
@@ -14,17 +16,13 @@ public class Student {
     private String email;
     private String course;
 
-    public Student() {}
-
-    public Student(String name, String email, String course) {
-        this.name = name;
-        this.email = email;
-        this.course = course;
-    }
-
-    // Getters & Setters
+    // getters and setters
     public Long getId() {
         return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public String getName() {
