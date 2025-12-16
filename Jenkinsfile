@@ -40,7 +40,8 @@ pipeline {
             steps {
                 dir('student-service') {
                     sh '''
-                    docker build -t $IMAGE_NAME:$IMAGE_TAG .
+                    docker version
+                    docker build -t ${IMAGE_NAME}:${IMAGE_TAG} .
                     '''
                 }
             }
@@ -55,7 +56,7 @@ pipeline {
                 )]) {
                     sh '''
                     echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
-                    docker push $IMAGE_NAME:$IMAGE_TAG
+                    docker push ${IMAGE_NAME}:${IMAGE_TAG}
                     '''
                 }
             }
