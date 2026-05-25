@@ -35,17 +35,14 @@ pipeline {
                 }
             }
         }
-
         stage('Build Docker Image') {
             steps {
                 dir('student-service') {
-                    sh '''
-                    docker version
-                    docker build -t ${IMAGE_NAME}:${IMAGE_TAG} .
-                    '''
+                    bat 'docker build -t %IMAGE_NAME%:%IMAGE_TAG% .'
                 }
             }
         }
+
 
         stage('Push to Docker Hub') {
             steps {
@@ -54,13 +51,14 @@ pipeline {
                     usernameVariable: 'DOCKER_USER',
                     passwordVariable: 'DOCKER_PASS'
                 )]) {
-                    sh '''
-                    echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
-                    docker push ${IMAGE_NAME}:${IMAGE_TAG}
+                    bat '''
+                    echo %DOCKER_PASS% | docker login -u %DOCKER_USER% --password-stdin
+                    docker push %IMAGE_NAME%:%IMAGE_TAG%
                     '''
                 }
             }
         }
+
     }
 
     post {

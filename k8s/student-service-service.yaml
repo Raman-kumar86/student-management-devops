@@ -3,7 +3,7 @@ kind: Service
 metadata:
   name: student-service
 spec:
-  type: NodePort
+  type: NodePor
   selector:
     app: student-service
   ports:
