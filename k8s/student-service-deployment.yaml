@@ -16,8 +16,6 @@ spec:
         - name: student-service
           image: ramanjaisw86/student-service:1.0
           imagePullPolicy: Always
-
-          imagePullPolicy: Always
           ports:
             - containerPort: 8080
           env:
